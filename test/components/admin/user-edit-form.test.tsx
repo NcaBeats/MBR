@@ -44,6 +44,7 @@ const user: AdminUser = {
   profile: {
     userId: 3,
     nickname: "nick",
+    avatarImage: null,
     bio: null,
     visibility: "PUBLIC",
     run: "111111111",

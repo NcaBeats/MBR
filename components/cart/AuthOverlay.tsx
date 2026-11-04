@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,10 @@ type Props = Readonly<{
 }>;
 
 export const AuthOverlay = ({ open, onClose }: Props) => {
+  const pathname = usePathname();
+  // Vuelve a la pagina actual (carrito/checkout) despues de autenticarse.
+  const next = encodeURIComponent(pathname);
+
   // AlertDialog ignora el click fuera: se habilita manualmente.
   useEffect(() => {
     if (!open) return;
@@ -47,13 +52,13 @@ export const AuthOverlay = ({ open, onClose }: Props) => {
           <AlertDialogCancel
             nativeButton={false}
             className={buttonVariants({ variant: "outline" })}
-            render={<Link href="/log-in" onClick={onClose} />}
+            render={<Link href={`/log-in?next=${next}`} onClick={onClose} />}
           >
             Log in
           </AlertDialogCancel>
           <AlertDialogAction
             nativeButton={false}
-            render={<Link href="/sign-up" onClick={onClose} />}
+            render={<Link href={`/sign-up?next=${next}`} onClick={onClose} />}
           >
             Sign up
           </AlertDialogAction>

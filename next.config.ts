@@ -40,6 +40,16 @@ const nextConfig: Record<string, unknown> = {
         protocol: "https",
         hostname: "*.onrender.com",
       },
+      // Avatar de Google Sign-In (se guarda la URL del claim `picture`).
+      {
+        protocol: "https",
+        hostname: "*.googleusercontent.com",
+      },
+      // Avatar de GitHub (proximo provider OAuth).
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
     ],
   },
   experimental: {

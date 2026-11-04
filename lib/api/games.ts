@@ -120,6 +120,7 @@ export const getAdminUser = async (id: number): Promise<AdminUser> => {
   }).catch((): Profile => ({
     userId: id,
     nickname: "",
+    avatarImage: null,
     bio: null,
     visibility: "PUBLIC",
     run: "",

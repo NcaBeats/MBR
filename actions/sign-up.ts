@@ -1,14 +1,21 @@
 ﻿"use server";
 
-import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import * as z from "zod";
 
 import { fetchAPI } from "@/lib/api/fetch";
-import type { AuthToken } from "@/types";
+import {
+  getRoleForToken,
+  redirectAfterAuth,
+  setSessionCookie,
+} from "@/lib/session";
+import type { AuthToken, User } from "@/types";
 import { signUpSchema } from "@/schemas/auth/sign-up.schema";
 
-export async function signUpAction(values: z.infer<typeof signUpSchema>) {
+export async function signUpAction(
+  values: z.infer<typeof signUpSchema>,
+  next?: string | null,
+) {
   const result = signUpSchema.safeParse(values);
 
   if (!result.success) {
@@ -29,8 +36,11 @@ export async function signUpAction(values: z.infer<typeof signUpSchema>) {
     direccion,
   } = result.data;
 
+  let token: string;
+  let role: User["role"];
+
   try {
-    await fetchAPI<AuthToken>("/auth/register", {
+    const data = await fetchAPI<AuthToken>("/auth/register", {
       method: "POST",
       body: {
         run,
@@ -45,6 +55,9 @@ export async function signUpAction(values: z.infer<typeof signUpSchema>) {
         address: direccion,
       },
     });
+
+    token = data.token;
+    role = await getRoleForToken(token);
   } catch {
     return {
       success: false as const,
@@ -54,5 +67,7 @@ export async function signUpAction(values: z.infer<typeof signUpSchema>) {
     };
   }
 
-  redirect("/log-in");
+  // El backend ya devuelve el token: se entra directo, sin pasar por /log-in.
+  await setSessionCookie(token);
+  redirectAfterAuth(role, next);
 }

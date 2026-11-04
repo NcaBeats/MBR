@@ -1,11 +1,23 @@
 import { describe, test, expect, vi, afterEach } from "vitest";
 import { cleanup, render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import SignUp from "@/app/(auth)/sign-up/page";
+import { SignUpForm } from "@/app/(auth)/sign-up/SignUpForm";
 import { signUpAction } from "@/actions";
 
 vi.mock("@/actions", () => ({
   signUpAction: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  usePathname: () => "/",
 }));
 
 vi.mock("@/hooks/use-location", () => ({
@@ -26,7 +38,7 @@ afterEach(() => {
 
 describe("SignUp estado y validación", () => {
   test("el estado del nombre cambia al escribir", () => {
-    render(<SignUp />);
+    render(<SignUpForm next={null} />);
     const nameInput = screen.getByPlaceholderText("John");
     fireEvent.change(nameInput, { target: { value: "Juan" } });
     expect(nameInput).toHaveValue("Juan");
@@ -36,9 +48,11 @@ describe("SignUp estado y validación", () => {
   });
 
   test("enviar vacío muestra errores de requerido y no llama a la action", async () => {
-    render(<SignUp />);
+    render(<SignUpForm next={null} />);
     fireEvent.click(screen.getByRole("button", { name: "Create account" }));
-    expect(await screen.findByText("First name is required")).toBeInTheDocument();
+    expect(
+      await screen.findByText("First name is required"),
+    ).toBeInTheDocument();
     expect(
       await screen.findByText("Last name is required"),
     ).toBeInTheDocument();

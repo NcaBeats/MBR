@@ -1,20 +1,13 @@
 import * as z from "zod";
-import { validate, clean } from "rut.js";
 import { passwordSchema } from "@/schemas/password.schema";
+import {
+  addressSchema,
+  birthdateSchema,
+  comunaIdSchema,
+  runSchema,
+} from "./profile-fields";
 
 const domains = new Set(["duoc.cl", "profesor.duoc.cl", "gmail.com"]);
-
-const run = z
-  .string("Invalid format")
-  .trim()
-  .transform((val) => clean(val))
-  .pipe(
-    z
-      .string()
-      .min(7, "Minimum of 7 characters")
-      .max(9, "Maximum of 9 characters")
-      .refine((val) => validate(val), { message: "RUN is not valid" }),
-  );
 
 const name = z
   .string()
@@ -43,40 +36,19 @@ const email = z
     },
   );
 
-const birthdate = z
-  .date({
-    error: (issue) => {
-      if (issue.input === undefined) return undefined;
-      return "The entered date does not exist or has an invalid format";
-    },
-  })
-  .max(new Date(), {
-    error: "The birth date cannot be in the future",
-  })
-  .optional();
-
-const comunaId = z.number({ error: "Select a municipality" }).int().positive({
-  error: "Select a municipality",
-});
-
-const direccion = z
-  .string()
-  .min(1, "Address is required")
-  .max(300, "Address cannot exceed 300 characters");
-
 const password = passwordSchema;
 
 const confirmPassword = z.string();
 
 export const signUpSchema = z
   .object({
-    run: run,
+    run: runSchema,
     name: name,
     lastName: lastName,
     email: email,
-    birthdate: birthdate,
-    comunaId: comunaId,
-    direccion: direccion,
+    birthdate: birthdateSchema,
+    comunaId: comunaIdSchema,
+    direccion: addressSchema,
     password: password,
     confirmPassword: confirmPassword,
   })

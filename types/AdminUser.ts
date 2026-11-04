@@ -3,6 +3,7 @@ import { UserRole } from "./User";
 export type Profile = {
   userId: number;
   nickname: string;
+  avatarImage: string | null;
   bio: string | null;
   visibility: "PUBLIC" | "PRIVATE";
   run: string;

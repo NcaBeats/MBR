@@ -11,7 +11,7 @@ pnpm vitest run        # suite completa
 pnpm coverage          # suite + reporte HTML en coverage/
 ```
 
-Última ejecución: 23 archivos, 85 tests, 85 aprobados, 0 fallidos.
+Última ejecución: 27 archivos, 104 tests, 104 aprobados, 0 fallidos.
 
 ## Requisitos de la pauta
 
@@ -35,8 +35,9 @@ pnpm coverage          # suite + reporte HTML en coverage/
 | `/blog` | `BlogCard.test.tsx` | Card con título y extracto |
 | `/games/[id]` | `game-detail.test.tsx` | Compra, estados en carrito/librería |
 | `/contact` | `contact-form.test.tsx` | Validación, éxito y error del servidor |
-| `/log-in` | `PasswordInput.test.tsx` | Alternar visibilidad de contraseña |
-| `/sign-up` | `sign-up-form.test.tsx` | Estado y errores de requerido |
+| `/log-in` | `PasswordInput.test.tsx`, `google-sign-in-button.test.tsx` | Alternar visibilidad de contraseña; el botón de Google envía el credential a la action |
+| `/sign-up` | `sign-up-form.test.tsx`, `google-onboarding-form.test.tsx` | Estado y errores de requerido; precarga de nickname y validación del onboarding |
+| `/sign-up/google` | `google-onboarding-form.test.tsx` | RUN inválido, nickname/dirección requeridos |
 | `/admin/games/[id]` | `game-edit-form.test.tsx` | Edición y payload por categorías |
 | `/admin/users/new`, `/admin/users/[id]` | `new-user-form.test.tsx`, `user-edit-form.test.tsx` | Creación, validación, región/comuna, rol |
 | `/admin/blogs` (lista, nuevo, detalle) | `blog-form.test.tsx` | Validación, categoría y payload |
@@ -45,6 +46,7 @@ pnpm coverage          # suite + reporte HTML en coverage/
 | Búsqueda global | `SearchBar.test.tsx` | Resultados, vacío, navegación por teclado/mouse |
 | Paginación | `Pagination.test.tsx` | Página actual, hrefs, estados |
 | Lógica sin DOM | `test/lib/regions.test.ts` | Catálogo de regiones/comunas y errores de fetch |
+| Redirects post-login | `test/lib/auth-redirect.test.ts` | `safeInternalPath` rechaza URLs externas; home por rol |
 
 ## Cobertura por componente (% líneas, `pnpm coverage`)
 
