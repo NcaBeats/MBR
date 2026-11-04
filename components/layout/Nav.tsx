@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
+import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, LogOut } from "lucide-react";
+import { ShoppingCart, LogOut, UserRound } from "lucide-react";
 import {
   NavBarLinks,
   SearchBar,
@@ -10,6 +11,7 @@ import {
 } from "@/components/layout";
 import { logoutAction } from "@/actions/logout";
 import { getCurrentUserAction } from "@/actions/admin/auth";
+import { getMyProfileAction } from "@/actions/profile";
 import { getMyWalletAction } from "@/actions/wallet";
 import { Erica_One } from "next/font/google";
 
@@ -22,10 +24,12 @@ const ericaOne = Erica_One({
 export const Nav = async () => {
   const cookieStore = await cookies();
   const isLoggedIn = !!cookieStore.get("token")?.value;
-  const user = isLoggedIn ? await getCurrentUserAction() : null;
-  const wallet = isLoggedIn
-    ? await getMyWalletAction().catch(() => null)
-    : null;
+
+  const [user, wallet, profile] = await Promise.all([
+    isLoggedIn ? getCurrentUserAction() : Promise.resolve(null),
+    isLoggedIn ? getMyWalletAction().catch(() => null) : Promise.resolve(null),
+    isLoggedIn ? getMyProfileAction().catch(() => null) : Promise.resolve(null),
+  ]);
   const isStaff = user?.role === "ADMIN" || user?.role === "VENDEDOR";
   const staffHref = user?.role === "ADMIN" ? "/admin" : "/studio/games";
 
@@ -83,6 +87,23 @@ export const Nav = async () => {
         >
           <ShoppingCart size={20} />
         </Link>
+        {isLoggedIn && (
+          <span className="flex items-center" title={user?.email}>
+            {profile?.avatarImage ? (
+              <Image
+                src={profile.avatarImage}
+                alt=""
+                width={32}
+                height={32}
+                className="size-8 rounded-full object-cover ring-1 ring-white/10"
+              />
+            ) : (
+              <span className="flex size-8 items-center justify-center rounded-full bg-[#28282C] text-[#EDEDED]">
+                <UserRound size={18} />
+              </span>
+            )}
+          </span>
+        )}
         {isLoggedIn ? (
           <form action={logoutAction}>
             <button

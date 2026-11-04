@@ -21,16 +21,60 @@ Tienda de videojuegos — frontend **Next.js** que consume el backend Spring Boo
 
 ## Configuración
 
-Un `.env` con una sola variable:
+Un `.env` con dos variables:
 
 ```bash
 API_BASE_URL=http://127.0.0.1:9090/api/v1
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=   # opcional: sin esto el botón de Google no se muestra
 ```
 
 El navegador no usa variables: llama siempre a la ruta relativa `/api/v1`,
 que Next.js reescribe al backend (`next.config.ts` → `rewrites`). En el
 servidor (Server Actions, SSR) se usa `API_BASE_URL` porque `fetch` necesita
 URL absoluta.
+
+### Google Sign-In
+
+El botón lo renderiza **Google Identity Services** (`renderButton`): no es un
+componente nuestro y no se puede reestilizar con CSS, solo elegir `theme`,
+`shape`, `size`, `text` y `width`.
+
+```
+[ Log In ] / [ Create account ]
+────── or ──────
+[ G  Continue with Google ]
+```
+
+Flujo:
+
+1. El botón entrega un `credential` (ID token) a la Server Action `googleLoginAction`.
+2. Si la cuenta ya existe, se setea la cookie httpOnly `token` y se redirige por rol
+   (o a `?next=` si la página de auth lo traía).
+3. Si es nueva, el backend devuelve `ONBOARDING_REQUIRED`; el `onboardingToken`
+   se guarda en la cookie httpOnly `google_onboarding` (10 min) y se redirige a
+   `/sign-up/google`, donde se completan RUN, nickname, región/comuna y dirección.
+4. `googleCompleteAction` crea la cuenta, setea la sesión y redirige a `?next=` o al home del rol.
+
+El access token y el onboarding token **nunca** pasan por JavaScript ni por la URL.
+
+### Redirects de autenticación
+
+- Los links entre `/log-in` y `/sign-up` usan `next/link` (navegación client-side) y
+  conservan el `?next=` para volver a la página original (ej. `/cart` desde el carrito).
+- Después de un login/registro exitoso: si `?next=` es una ruta interna válida se va
+  ahí; si no, al home del rol (`ADMIN` → `/admin`, `VENDEDOR` → `/studio/games`, resto → `/`).
+- `lib/auth-redirect.ts` valida el destino (`safeInternalPath`) para evitar open redirects.
+- Un usuario ya autenticado que entra a `/log-in` o `/sign-up` es redirigido a su home.
+
+Requisitos:
+
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (acá) y `GOOGLE_CLIENT_ID` (backend/Render) deben
+  tener el **mismo valor**.
+- En Google Cloud Console → OAuth Client ID (Web application) → *Authorized
+  JavaScript origins*: `http://localhost:3000` y el dominio de producción.
+- En Vercel, la variable se inlinea en build: hay que **redeployar** después de
+  cambiarla.
+
 
 ## Comandos
 
@@ -51,6 +95,7 @@ pnpm coverage   # suite + reporte HTML en coverage/ (ignorado por git)
 - `app/(auth)/` — login/signup
 - `app/(admin)/` y `app/(studio)/` — paneles de administración y estudios (vendedores)
 - `actions/` — Server Actions (muta datos, define revalidaciones)
+- `lib/session.ts` — cookie de sesión, rol del usuario y redirect post-login
 - `lib/api/` — `fetchAPI` (server, JWT, `API_BASE_URL`) + clientes de navegador
   (`search.ts`, `regions.ts`, ruta `/api/v1` vía rewrite)
 - `stores/` — store del carrito (Zustand + `persist`, solo cliente)

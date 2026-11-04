@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+
 import { getCurrentUserAction } from "@/actions/admin/auth";
+import { homeForRole } from "@/lib/auth-redirect";
 
 export default async function AuthLayout({
   children,
@@ -8,8 +10,9 @@ export default async function AuthLayout({
 }) {
   const user = await getCurrentUserAction();
 
-  if (user?.role === "VENDEDOR") {
-    redirect("/studio/games");
+  // Un usuario ya autenticado no tiene nada que hacer en /log-in o /sign-up.
+  if (user) {
+    redirect(homeForRole(user.role));
   }
 
   return <main>{children}</main>;
