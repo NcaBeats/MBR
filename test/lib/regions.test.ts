@@ -5,19 +5,19 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const mockFetch = (data: unknown, ok = true, status = 200) =>
-  vi.stubGlobal(
-    "fetch",
-    vi.fn().mockResolvedValue({
-      ok,
-      status,
-      json: () => Promise.resolve(data),
-      text: () => Promise.resolve(""),
-    }),
-  );
+const mockFetch = (data: unknown, { ok = true, status = 200 } = {}) => {
+  const fetchMock = vi.fn().mockResolvedValue({
+    ok,
+    status,
+    json: () => Promise.resolve(data),
+    text: () => Promise.resolve(""),
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+};
 
 describe("regions client", () => {
-  test("getRegionsClient devuelve el catálogo tal cual (texto bonito)", async () => {
+  test("getRegionsClient devuelve el catálogo de regiones", async () => {
     mockFetch([
       { id: 1, nombre: "Arica y Parinacota" },
       { id: 7, nombre: "Metropolitana de Santiago" },
@@ -28,18 +28,22 @@ describe("regions client", () => {
   });
 
   test("getComunasClient pide las comunas de la región", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: () => Promise.resolve([{ id: 1, nombre: "Santiago", regionId: 7 }]),
-      text: () => Promise.resolve(""),
-    });
-    vi.stubGlobal("fetch", fetchMock);
+    const fetchMock = mockFetch([{ id: 1, nombre: "Santiago", regionId: 7 }]);
     const comunas = await getComunasClient(7);
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/regions/7/comunas"),
     );
     expect(comunas[0]).toEqual({ id: 1, nombre: "Santiago", regionId: 7 });
+  });
+
+  test("getRegionsClient lanza error si la API responde 500", async () => {
+    mockFetch({}, { ok: false, status: 500 });
+    await expect(getRegionsClient()).rejects.toThrow();
+  });
+
+  test("getComunasClient lanza error si la API responde 404", async () => {
+    mockFetch({}, { ok: false, status: 404 });
+    await expect(getComunasClient(7)).rejects.toThrow();
   });
 
   test("respuesta no-array lanza ApiError", async () => {
